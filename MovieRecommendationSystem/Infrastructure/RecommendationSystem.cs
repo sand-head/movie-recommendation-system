@@ -13,12 +13,14 @@ namespace MovieRecommendationSystem.Infrastructure
         private Dictionary<(int X, int Y), double> _itemSimilarityMatrix;
         private Func<T, int> _itemIdFunc, _userIdFunc;
         private Func<T, double> _ratingFunc;
+        private Func<int, string> _itemNameFunc;
 
-        public RecommendationSystem(Func<T, int> itemIdFunc, Func<T, int> userIdFunc, Func<T, double> ratingFunc)
+        public RecommendationSystem(Func<T, int> itemIdFunc, Func<T, int> userIdFunc, Func<T, double> ratingFunc, Func<int, string> itemNameFunc = null)
         {
             _itemIdFunc = itemIdFunc;
             _userIdFunc = userIdFunc;
             _ratingFunc = ratingFunc;
+            _itemNameFunc = itemNameFunc;
         }
 
         public void LoadModel(IEnumerable<T> itemRatings)
@@ -50,12 +52,13 @@ namespace MovieRecommendationSystem.Infrastructure
                         var secondItemPairs = itemPairs.Where(x => _itemIdFunc(x.SecondItem) == secondItemId);
                         var similarity = secondItemPairs.Sum(x => (_ratingFunc(x.FirstItem) - firstItemAverageRating) * (_ratingFunc(x.SecondItem) - secondItemAverageRating)) /
                             (Math.Sqrt(secondItemPairs.Sum(x => Math.Pow(_ratingFunc(x.FirstItem), 2))) * Math.Sqrt(secondItemPairs.Sum(x => Math.Pow(_ratingFunc(x.SecondItem), 2))));
-                        _itemSimilarityMatrix.Add((firstItemId, secondItemId), similarity);
+                        _itemSimilarityMatrix.Add((X: firstItemId, Y: secondItemId), similarity);
                     }
                 });
 
+                var itemName = _itemNameFunc == null ? firstItemId.ToString() : _itemNameFunc(firstItemId);
                 Interlocked.Increment(ref currentProgress);
-                Console.WriteLine($" [{currentProgress}/{totalCount}] Finished work on item ID \"{firstItemId}\" in {elapsed.TotalMinutes} minute(s).");
+                Console.WriteLine($" [{currentProgress}/{totalCount}] Finished work on item \"{itemName}\" in {elapsed.TotalMinutes} minute(s).");
             });
         }
 
