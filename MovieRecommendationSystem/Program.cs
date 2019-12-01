@@ -13,6 +13,13 @@ namespace MovieRecommendationSystem
     {
         static void Main(string[] args)
         {
+            if (!File.Exists("data/data-full.txt"))
+            {
+                Console.WriteLine("Could not find file \"data-full.txt\" in the relative directory \"data\". Please make sure the required data is located in said directory.");
+                Console.ReadKey();
+                return;
+            }
+
             var csvOptions = new CsvParserOptions(true, ',');
             var csvMovieMapping = new CsvMovieMapping();
             var csvMovieDescriptionMapping = new CsvMovieDescriptionMapping();
